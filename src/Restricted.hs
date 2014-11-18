@@ -1,8 +1,8 @@
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE RankNTypes #-}
 module Restricted
     ( RIO
-    , act
-    , act1
+    , askActions
     , runRIO
     ) where
 
@@ -17,11 +17,9 @@ instance Monad (RIO actions) where
     return = pure
     RIO x >>= f = RIO $ \actions -> x actions >>= flip unRIO actions . f
 
-act :: (actions -> IO a) -> RIO actions a
-act = RIO
+askActions :: RIO actions actions
+askActions = RIO return
 
-act1 :: (actions -> arg1 -> IO a) -> arg1 -> RIO actions a
-act1 f x = RIO $ \actions -> f actions x
-
-runRIO :: actions -> RIO actions a -> IO a
-runRIO = flip unRIO
+runRIO :: ((forall r. IO r -> RIO actions r) -> actions) -> RIO actions a -> IO a
+runRIO mkActions (RIO withActions) =
+    withActions $ mkActions $ \io -> RIO (const io)

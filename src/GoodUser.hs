@@ -6,7 +6,9 @@ module GoodUser
 import Restricted
 
 class HasPutStrLn actions where
-    getPutStrLn :: actions -> String -> IO ()
+    getPutStrLn :: actions -> String -> RIO actions ()
 
 goodUser :: HasPutStrLn actions => RIO actions ()
-goodUser = act1 getPutStrLn "I'm a good, safe user of Restricted!"
+goodUser = do
+    actions <- askActions
+    getPutStrLn actions "I'm a good, safe user of Restricted!"
